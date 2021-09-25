@@ -8,12 +8,15 @@
 #include<limits.h>
 #include<netinet/in.h>
 #include<string.h>
+#include<unistd.h>
+#include<sys/types.h>
 
 #define STOP 1
 #define GO 0
 #define TRUE 1
 #define FALSE 0
 #define PORT 4001
+#define BUFFER_LENGTH 4096
 
 struct  Node{
     int dado;
@@ -25,6 +28,7 @@ struct Queue{
     struct Node *start;
     struct Node *end;
     int semaforo;
+    int processes;
 };
 
 typedef struct Node Node;
@@ -43,6 +47,7 @@ void createQueue(Queue *queue){
     queue->start = (Node*)NULL;
     queue->end = queue->start;
     queue->semaforo = GO;
+    queue->processes = 0;
 }
 
 int emptyQueue(Queue *q){
@@ -132,4 +137,61 @@ int main(int argc, char *argv[]){
     }
 
     printf("Server listening on port %d\n", PORT);
+
+    while (1){
+
+        socklen_t client_len = sizeof(client);
+        if( (clientfd=accept(serverfd, (struct sockaddr *)&client, &client_len )) == -1 ){
+            perror("Error while connecting the client\n");
+            exit(1);
+        }
+
+        printf("New connection\n");
+        
+
+        int process_id = fork();
+        if(process_id < 0){
+            perror("Fork failed\n");
+            exit(1);
+        }
+        else if (process_id == 0){
+            // Inside child process
+
+            char buffer[BUFFER_LENGTH];
+            memset(buffer, (int)'\0', BUFFER_LENGTH);
+
+            printf("Shm id: %d\n", key);
+
+            // Getting shared memory
+            shm_id = shmget(key, sizeof(Queue), 0666);
+            if (shm_id < 0) {
+                perror("Error while getting shared memory segment\n");
+                exit(1);
+            }
+            // Attaching memory segment
+            Queue *q = (Queue *)shmat(shm_id, NULL, 0);
+            if((int)q == -1){
+                perror("Error while attaching memory\n");
+            }
+
+            // while (1){
+                
+            // }
+
+            // close(serverfd);
+
+            while (1){
+                int msg_len;
+                if( (msg_len = recv(clientfd, buffer, BUFFER_LENGTH, 0)) > 0 ){
+                    buffer[msg_len - 1] = '\0';
+                }
+                
+                printf("Received: %s\n", buffer);
+                close(serverfd);
+            }
+            
+        
+        }
+    }
+    
 }
