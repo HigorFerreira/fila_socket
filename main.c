@@ -4,12 +4,16 @@
 
 #include<sys/ipc.h>
 #include<sys/shm.h>
+#include<sys/socket.h>
 #include<limits.h>
+#include<netinet/in.h>
+#include<string.h>
 
 #define STOP 1
 #define GO 0
 #define TRUE 1
 #define FALSE 0
+#define PORT 4001
 
 struct  Node{
     int dado;
@@ -93,19 +97,39 @@ int main(int argc, char *argv[]){
     // Initializing queue
     createQueue(queue);
     
-    printf("Empty queue %i\n", emptyQueue(queue));
-    enQueue(createNode(2), queue);
-    printf("Queued node value: %i\n", queue->start->dado);
-    printf("Empty queue %i\n", emptyQueue(queue));
-    printf("Unqueued value: %i\n", unQueue(queue));
-    printf("Empty queue %i\n", emptyQueue(queue));
-    enQueue(createNode(1), queue);
-    printf("Queued node value: %i\n", queue->start->dado);
-    enQueue(createNode(2), queue);
-    printf("Queued node value: %i\n", queue->start->next->dado);
-    printf("Empty queue %i\n", emptyQueue(queue));
-    printf("Unqueued value: %i\n", unQueue(queue));
-    printf("Unqueued value: %i\n", unQueue(queue));
-    printf("Empty queue %i\n", emptyQueue(queue));
+    // Socket structures
+    struct sockaddr_in client, server;
+    // Socket file descriptors
+    int serverfd, clientfd;
+    
+    // Creating socket
+    serverfd = socket(AF_INET, SOCK_STREAM, 0);
+    if(serverfd == -1){
+        perror("Error while creating server socket\n");
+        exit(1);
+    }
+    printf("Server socket created with file descriptor %d\n", serverfd);
+    // Defining server socket properties
+    server.sin_family = AF_INET;
+    server.sin_port = htons(PORT);
+    memset(server.sin_zero, 0x0, 8);
+    // Port busy error handler
+    int yes = 1;
+    if(setsockopt(serverfd, SOL_SOCKET, SO_REUSEADDR,
+                  &yes, sizeof(int)) == -1) {
+        perror("PORT is busy");
+        exit(1);
+    }
+    // Binding soxket
+    if(bind(serverfd, (struct sockaddr *)&server, sizeof(server)) == -1){
+        perror("Error while attachind socket to port\n");
+        exit(1);
+    }
+    // Listening for connections on port
+    if(listen(serverfd, 4) == -1){
+        perror("Error while listening\n");
+        exit(1);
+    }
 
+    printf("Server listening on port %d\n", PORT);
 }
