@@ -181,12 +181,19 @@ int main(int argc, char *argv[]){
             // close(serverfd);
 
             while (1){
-                int msg_len;
-                if( (msg_len = recv(clientfd, buffer, BUFFER_LENGTH, 0)) > 0 ){
-                    buffer[msg_len - 1] = '\0';
-                }
+
+                recv(clientfd, buffer, BUFFER_LENGTH, 0);
+                // int msg_len;
+                // if( (msg_len = recv(clientfd, buffer, BUFFER_LENGTH, 0)) > 0 ){
+                //     buffer[msg_len - 1] = '\0';
+                // }
                 
                 printf("Received: %s\n", buffer);
+
+                char *ptr = (const char *)&(buffer);
+                printf("%s", ptr);
+                printf("%i", atoi(ptr));
+
                 close(serverfd);
             }
             

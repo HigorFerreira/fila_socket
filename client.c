@@ -44,11 +44,16 @@ int main(int argc, char *argv[]){
 
     while (1)
     {
+        memset(buffer_in, 0, BUFFER_LENGTH);
         memset(buffer_out, 0, BUFFER_LENGTH);
+        
+        // int recv_len = recv(client_socketfd, buffer_in, BUFFER_LENGTH, 0);
+        // if(recv_len > 0) printf("Mensage, do servidor: %s\n", buffer_in);
+        
         fgets(buffer_out, BUFFER_LENGTH, stdin);
-
         send(client_socketfd, buffer_out, strlen(buffer_out), 0);
     }
-    
+
+    close(client_socketfd);
     exit(0);
 }
