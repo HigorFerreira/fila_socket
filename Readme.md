@@ -1,4 +1,4 @@
-# Jogo da forca usando RPC
+# Fila encadeada no servidor
 ##### Potifícia Universidade Católica de Goiás
 **Professor:** Cláudio Martins Garcia<br>
 **Aluno:** Higor Ferreira Alves Santos
